@@ -1,132 +1,140 @@
 export const exampleAccountInfo = {
-  accountId: "NT-123456",
+  accountId: "CC-123456",
   name: "Alex Johnson",
   phone: "+1-206-135-1246",
   email: "alex.johnson@email.com",
-  plan: "Unlimited Plus",
-  balanceDue: "$42.17",
-  lastBillDate: "2024-05-15",
-  lastPaymentDate: "2024-05-20",
-  lastPaymentAmount: "$42.17",
+  membershipType: "Premium Navigator",
   status: "Active",
+  joinDate: "2024-05-15",
+  lastLoginDate: "2024-05-20",
   address: {
     street: "1234 Pine St",
     city: "Seattle",
     state: "WA",
     zip: "98101"
   },
-  lastBillDetails: {
-    basePlan: "$30.00",
-    internationalCalls: "$8.00",
-    dataOverage: "$4.00",
-    taxesAndFees: "$0.17",
-    notes: "Higher than usual due to international calls and data overage."
+  medicalProfile: {
+    conditions: ["Type 2 Diabetes", "Hypertension"],
+    currentTrials: 2,
+    completedTrials: 1,
+    interestedIn: ["Cardiovascular", "Endocrinology"],
+    notes: "Looking for trials in Seattle area, prefers virtual visits when possible."
   }
 };
 
 export const examplePolicyDocs = [
   {
-    id: "ID-010",
-    name: "Family Plan Policy",
-    topic: "family plan options",
+    id: "CC-010",
+    name: "Trial Matching Algorithm Policy",
+    topic: "trial matching and algorithm",
     content:
-      "The family plan allows up to 5 lines per account. All lines share a single data pool. Each additional line after the first receives a 10% discount. All lines must be on the same account.",
+      "ClinConnect's proprietary matching algorithm considers patient medical history, location preferences, trial inclusion/exclusion criteria, and patient-reported outcomes. The system prioritizes trials within 50 miles of the patient's location unless they specifically request broader geographic options. All matches undergo clinical review before presentation to patients.",
   },
   {
-    id: "ID-020",
-    name: "Promotions and Discounts Policy",
-    topic: "promotions and discounts",
+    id: "CC-020",
+    name: "Privacy and HIPAA Compliance Policy",
+    topic: "privacy and HIPAA compliance",
     content:
-      "The Summer Unlimited Data Sale provides a 20% discount on the Unlimited Plus plan for the first 6 months for new activations completed by July 31, 2024. The Refer-a-Friend Bonus provides a $50 bill credit to both the referring customer and the new customer after 60 days of active service, for activations by August 31, 2024. A maximum of 5 referral credits may be earned per account. Discounts cannot be combined with other offers.",
+      "ClinConnect maintains strict HIPAA compliance for all patient data. Medical information is encrypted at rest and in transit, with access limited to authorized clinical staff. Patient consent is required before sharing any information with trial sponsors. Patients retain full control over their data and can request deletion at any time. All clinical trial communications are conducted through secure, encrypted channels.",
   },
   {
-    id: "ID-030",
-    name: "International Plans Policy",
-    topic: "international plans",
+    id: "CC-030",
+    name: "Navigator Support Services Policy",
+    topic: "navigator support and concierge services",
     content:
-      "International plans are available and include discounted calling, texting, and data usage in over 100 countries.",
+      "ClinConnect provides free navigator support to all patients enrolled in our platform. Services include trial matching, enrollment assistance, appointment coordination, transportation support, and ongoing clinical trial education. Premium Navigator members receive priority scheduling and dedicated support representatives.",
   },
   {
-    id: "ID-040",
-    name: "Handset Offers Policy",
-    topic: "new handsets",
+    id: "CC-040",
+    name: "Partner Clinic Network Policy",
+    topic: "partner clinics and research centers",
     content:
-      "Handsets from brands such as iPhone and Google are available. The iPhone 16 is $200 and the Google Pixel 8 is available for $0, both with an additional 18-month commitment. These offers are valid while supplies last and may require eligible plans or trade-ins. For more details, visit one of our stores.",
+      "ClinConnect partners with over 2,500 research centers and clinics nationwide. Partner sites undergo rigorous vetting for research quality, patient safety protocols, and ethical standards. All partner clinics maintain current FDA and IRB approvals. Patients can access trials at any partner location, with travel assistance available for qualifying studies.",
   },
 ];
 
 export const exampleStoreLocations = [
-  // NorCal
+  // NorCal Partner Clinics
   {
-    name: "NewTelco San Francisco Downtown Store",
-    address: "1 Market St, San Francisco, CA",
-    zip_code: "94105",
+    name: "ClinConnect Partner - UCSF Clinical Research Center",
+    address: "1001 Potrero Ave, San Francisco, CA",
+    zip_code: "94110",
     phone: "(415) 555-1001",
-    hours: "Mon-Sat 10am-7pm, Sun 11am-5pm"
+    hours: "Mon-Fri 8am-5pm",
+    specialties: ["Oncology", "Neurology", "Cardiology"]
   },
   {
-    name: "NewTelco San Jose Valley Fair Store",
-    address: "2855 Stevens Creek Blvd, Santa Clara, CA",
-    zip_code: "95050",
-    phone: "(408) 555-2002",
-    hours: "Mon-Sat 10am-8pm, Sun 11am-6pm"
+    name: "ClinConnect Partner - Stanford Medicine Research",
+    address: "300 Pasteur Dr, Stanford, CA",
+    zip_code: "94305",
+    phone: "(650) 555-2002",
+    hours: "Mon-Fri 7am-6pm",
+    specialties: ["Immunology", "Dermatology", "Psychiatry"]
   },
   {
-    name: "NewTelco Sacramento Midtown Store",
-    address: "1801 L St, Sacramento, CA",
-    zip_code: "95811",
+    name: "ClinConnect Partner - UC Davis Clinical Trials",
+    address: "2315 Stockton Blvd, Sacramento, CA",
+    zip_code: "95817",
     phone: "(916) 555-3003",
-    hours: "Mon-Sat 10am-7pm, Sun 12pm-5pm"
+    hours: "Mon-Fri 8am-4pm",
+    specialties: ["Endocrinology", "Gastroenterology"]
   },
-  // SoCal
+  // SoCal Partner Clinics
   {
-    name: "NewTelco Los Angeles Hollywood Store",
-    address: "6801 Hollywood Blvd, Los Angeles, CA",
-    zip_code: "90028",
-    phone: "(323) 555-4004",
-    hours: "Mon-Sat 10am-9pm, Sun 11am-7pm"
-  },
-  {
-    name: "NewTelco San Diego Gaslamp Store",
-    address: "555 5th Ave, San Diego, CA",
-    zip_code: "92101",
-    phone: "(619) 555-5005",
-    hours: "Mon-Sat 10am-8pm, Sun 11am-6pm"
+    name: "ClinConnect Partner - Cedars-Sinai Research",
+    address: "8700 Beverly Blvd, Los Angeles, CA",
+    zip_code: "90048",
+    phone: "(310) 555-4004",
+    hours: "Mon-Fri 7am-7pm",
+    specialties: ["Oncology", "Cardiology", "Neurology"]
   },
   {
-    name: "NewTelco Irvine Spectrum Store",
-    address: "670 Spectrum Center Dr, Irvine, CA",
-    zip_code: "92618",
-    phone: "(949) 555-6006",
-    hours: "Mon-Sat 10am-8pm, Sun 11am-6pm"
+    name: "ClinConnect Partner - UC San Diego Clinical Research",
+    address: "9500 Gilman Dr, La Jolla, CA",
+    zip_code: "92093",
+    phone: "(858) 555-5005",
+    hours: "Mon-Fri 8am-5pm",
+    specialties: ["Rheumatology", "Infectious Disease"]
   },
-  // East Coast
   {
-    name: "NewTelco New York City Midtown Store",
-    address: "350 5th Ave, New York, NY",
-    zip_code: "10118",
+    name: "ClinConnect Partner - USC Research Center",
+    address: "1975 Zonal Ave, Los Angeles, CA",
+    zip_code: "90089",
+    phone: "(323) 555-6006",
+    hours: "Mon-Fri 8am-6pm",
+    specialties: ["Pediatrics", "Ophthalmology"]
+  },
+  // East Coast Partner Clinics
+  {
+    name: "ClinConnect Partner - NYU Langone Clinical Trials",
+    address: "550 1st Ave, New York, NY",
+    zip_code: "10016",
     phone: "(212) 555-7007",
-    hours: "Mon-Sat 9am-8pm, Sun 10am-6pm"
+    hours: "Mon-Fri 7am-8pm",
+    specialties: ["Oncology", "Neurology", "Cardiology"]
   },
   {
-    name: "NewTelco Boston Back Bay Store",
-    address: "800 Boylston St, Boston, MA",
-    zip_code: "02199",
+    name: "ClinConnect Partner - Mass General Research",
+    address: "55 Fruit St, Boston, MA",
+    zip_code: "02114",
     phone: "(617) 555-8008",
-    hours: "Mon-Sat 10am-7pm, Sun 12pm-6pm"
+    hours: "Mon-Fri 8am-6pm",
+    specialties: ["Immunology", "Gastroenterology"]
   },
   {
-    name: "NewTelco Washington DC Georgetown Store",
-    address: "1234 Wisconsin Ave NW, Washington, DC",
+    name: "ClinConnect Partner - Georgetown University Medical",
+    address: "3800 Reservoir Rd NW, Washington, DC",
     zip_code: "20007",
     phone: "(202) 555-9009",
-    hours: "Mon-Sat 10am-7pm, Sun 12pm-5pm"
+    hours: "Mon-Fri 8am-5pm",
+    specialties: ["Endocrinology", "Nephrology"]
   },
   {
-    name: "NewTelco Miami Beach Store",
-    address: "1601 Collins Ave, Miami Beach, FL",
-    zip_code: "33139",
+    name: "ClinConnect Partner - University of Miami Research",
+    address: "1611 NW 12th Ave, Miami, FL",
+    zip_code: "33136",
     phone: "(305) 555-1010",
-    hours: "Mon-Sat 10am-8pm, Sun 11am-6pm"
+    hours: "Mon-Fri 8am-6pm",
+    specialties: ["Dermatology", "Psychiatry"]
   }
 ];

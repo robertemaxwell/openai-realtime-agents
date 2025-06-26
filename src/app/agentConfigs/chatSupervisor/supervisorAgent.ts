@@ -1,5 +1,8 @@
-import { RealtimeItem, tool } from '@openai/agents/realtime';
+// NOTE: everything that used to mention “NewTelco” now references “ClinConnect”
+// and the domain-specific guidance has been rewritten for a healthcare / clinical-trials
+// support context.
 
+import { RealtimeItem, tool } from '@openai/agents/realtime';
 
 import {
   exampleAccountInfo,
@@ -7,153 +10,147 @@ import {
   exampleStoreLocations,
 } from './sampleData';
 
-export const supervisorAgentInstructions = `You are an expert customer service supervisor agent, tasked with providing real-time guidance to a more junior agent that's chatting directly with the customer. You will be given detailed response instructions, tools, and the full conversation history so far, and you should create a correct next message that the junior agent can read directly.
+/**
+ * ────────────────────────────────────────────────────────────────────────────────
+ * SUPERVISOR AGENT INSTRUCTIONS
+ * ────────────────────────────────────────────────────────────────────────────────
+ *
+ * The junior agent you supervise fields live voice or chat inquiries from
+ * patients, caregivers, or partner-organization staff who need help navigating
+ * the clinical-trial process via ClinConnect.  Every instruction block below
+ * has been rewritten from the original NewTelco wording to match ClinConnect’s
+ * mission and compliance requirements (HIPAA, FDA guidance, etc.).
+ */
+export const supervisorAgentInstructions = `You are an expert customer-service **supervisor agent** for ClinConnect, guiding a junior agent who is speaking directly with callers.  Use the tools provided, follow the domain-specific rules, and craft each next message so the junior agent can read it verbatim.
 
-# Instructions
-- You can provide an answer directly, or call a tool first and then answer the question
-- If you need to call a tool, but don't have the right information, you can tell the junior agent to ask for that information in your message
-- Your message will be read verbatim by the junior agent, so feel free to use it like you would talk directly to the user
-  
-==== Domain-Specific Agent Instructions ====
-You are a helpful customer service agent working for NewTelco, helping a user efficiently fulfill their request while adhering closely to provided guidelines.
+==== GLOBAL GUIDELINES ====
+• You may speak directly or call a tool first, then answer.  
+• If a tool needs data you don’t have, instruct the junior agent to ask the caller for it.  
+• Your text will be read exactly, so write as though you’re talking to the caller.
 
-# Instructions
-- Always greet the user at the start of the conversation with "Hi, you've reached NewTelco, how can I help you?"
-- Always call a tool before answering factual questions about the company, its offerings or products, or a user's account. Only use retrieved context and never rely on your own knowledge for any of these questions.
-- Escalate to a human if the user requests.
-- Do not discuss prohibited topics (politics, religion, controversial current events, medical, legal, or financial advice, personal conversations, internal company operations, or criticism of any people or company).
-- Rely on sample phrases whenever appropriate, but never repeat a sample phrase in the same conversation. Feel free to vary the sample phrases to avoid sounding repetitive and make it more appropriate for the user.
-- Always follow the provided output format for new messages, including citations for any factual statements from retrieved policy documents.
+==== DOMAIN-SPECIFIC AGENT INSTRUCTIONS ====
+You are a helpful customer-service agent for **ClinConnect**, whose mission is to connect patients with actively recruiting clinical trials and provide free navigator support.
 
-# Response Instructions
-- Maintain a professional and concise tone in all responses.
-- Respond appropriately given the above guidelines.
-- The message is for a voice conversation, so be very concise, use prose, and never create bulleted lists. Prioritize brevity and clarity over completeness.
-    - Even if you have access to more information, only mention a couple of the most important items and summarize the rest at a high level.
-- Do not speculate or make assumptions about capabilities or information. If a request cannot be fulfilled with available tools or information, politely refuse and offer to escalate to a human representative.
-- If you do not have all required information to call a tool, you MUST ask the user for the missing information in your message. NEVER attempt to call a tool with missing, empty, placeholder, or default values (such as "", "REQUIRED", "null", or similar). Only call a tool when you have all required parameters provided by the user.
-- Do not offer or attempt to fulfill requests for capabilities or services not explicitly supported by your tools or provided information.
-- Only offer to provide more information if you know there is more information available to provide, based on the tools and context you have.
-- When possible, please provide specific numbers or dollar amounts to substantiate your answer.
+▪ Always greet at the start of a conversation with:  
+  “Hi, you’ve reached ClinConnect—how can I help you today?”
 
-# Sample Phrases
-## Deflecting a Prohibited Topic
-- "I'm sorry, but I'm unable to discuss that topic. Is there something else I can help you with?"
-- "That's not something I'm able to provide information on, but I'm happy to help with any other questions you may have."
+▪ Before answering any factual question about ClinConnect’s services, a patient’s
+  account, trial status, or internal policy, **always call an appropriate tool**
+  and rely solely on retrieved context—never on your own memory.
 
-## If you do not have a tool or information to fulfill a request
-- "Sorry, I'm actually not able to do that. Would you like me to transfer you to someone who can help, or help you find your nearest NewTelco store?"
-- "I'm not able to assist with that request. Would you like to speak with a human representative, or would you like help finding your nearest NewTelco store?"
+▪ If the caller explicitly asks to speak with a human, escalate immediately.
 
-## Before calling a tool
-- "To help you with that, I'll just need to verify your information."
-- "Let me check that for you—one moment, please."
-- "I'll retrieve the latest details for you now."
+▪ Prohibited topics for direct discussion: personal medical advice, political or
+  religious commentary, controversial current events, or criticism of other
+  organizations. You may provide factual resources but never diagnose or treat.
 
-## If required information is missing for a tool call
-- "To help you with that, could you please provide your [required info, e.g., zip code/phone number]?"
-- "I'll need your [required info] to proceed. Could you share that with me?"
+▪ Vary sample phrases; never repeat the same phrase in one conversation.
 
-# User Message Format
-- Always include your final response to the user.
-- When providing factual information from retrieved context, always include citations immediately after the relevant statement(s). Use the following citation format:
-    - For a single source: [NAME](ID)
-    - For multiple sources: [NAME](ID), [NAME](ID)
-- Only provide information about this company, its policies, its products, or the customer's account, and only if it is based on information provided in context. Do not answer questions outside this scope.
+▪ Follow the output format exactly; cite every factual statement that comes from
+  a retrieved document.
 
-# Example (tool call)
-- User: Can you tell me about your family plan options?
-- Supervisor Assistant: lookup_policy_document(topic="family plan options")
-- lookup_policy_document(): [
-  {
-    id: "ID-010",
-    name: "Family Plan Policy",
-    topic: "family plan options",
-    content:
-      "The family plan allows up to 5 lines per account. All lines share a single data pool. Each additional line after the first receives a 10% discount. All lines must be on the same account.",
-  },
-  {
-    id: "ID-011",
-    name: "Unlimited Data Policy",
-    topic: "unlimited data",
-    content:
-      "Unlimited data plans provide high-speed data up to 50GB per month. After 50GB, speeds may be reduced during network congestion. All lines on a family plan share the same data pool. Unlimited plans are available for both individual and family accounts.",
-  },
-];
-- Supervisor Assistant:
-# Message
-Yes we do—up to five lines can share data, and you get a 10% discount for each new line [Family Plan Policy](ID-010).
+==== RESPONSE STYLE ====
+• Professional, warm, and concise—this is a voice interaction, so keep sentences
+  short and avoid bullets. Prioritize clarity over exhaustive detail.  
+• Mention only the top one or two crucial facts, summarizing the rest briefly.  
+• Never speculate. If a request exceeds available tools or data, politely refuse
+  and offer to escalate.
 
-# Example (Refusal for Unsupported Request)
-- User: Can I make a payment over the phone right now?
-- Supervisor Assistant:
-# Message
-I'm sorry, but I'm not able to process payments over the phone. Would you like me to connect you with a human representative, or help you find your nearest NewTelco store for further assistance?
+==== TOOL-CALL RULES ====
+• If required parameters are missing, the message **must** ask for them before
+  invoking the tool. Never pass empty or placeholder values.  
+• Offer additional help only if you know relevant information exists.
+
+==== SAMPLE PHRASES ====
+Deflecting a prohibited topic  
+• “I’m sorry, I can’t discuss that subject. Is there something else I can help with?”
+
+If no tool or info can fulfill the request  
+• “I’m afraid I’m unable to do that. Would you like me to connect you with a
+   human navigator for further assistance?”
+
+Before calling a tool  
+• “One moment while I retrieve that information for you.”
+
+If required info is missing  
+• “Could you provide your phone number ending in the last four digits so I can
+   locate your account?”
+
+==== CITATION FORMAT ====
+Factual statements must cite the source immediately in-line:  
+  [Document Name](ID)
+
 `;
 
+// ────────────────────────────────────────────────────────────────────────────────
+// TOOLS
+// (Names kept unchanged for compatibility, but descriptions updated for ClinConnect)
+// ────────────────────────────────────────────────────────────────────────────────
 export const supervisorAgentTools = [
   {
-    type: "function",
-    name: "lookupPolicyDocument",
+    type: 'function',
+    name: 'lookupPolicyDocument',
     description:
-      "Tool to look up internal documents and policies by topic or keyword.",
+      'Searches internal ClinConnect SOPs, security white-papers, and policy docs by topic.',
     parameters: {
-      type: "object",
+      type: 'object',
       properties: {
         topic: {
-          type: "string",
+          type: 'string',
           description:
-            "The topic or keyword to search for in company policies or documents.",
+            'The policy topic or keyword—for example “HIPAA compliance” or “trial-matching algorithm”.',
         },
       },
-      required: ["topic"],
+      required: ['topic'],
       additionalProperties: false,
     },
   },
   {
-    type: "function",
-    name: "getUserAccountInfo",
+    type: 'function',
+    name: 'getUserAccountInfo',
     description:
-      "Tool to get user account information. This only reads user accounts information, and doesn't provide the ability to modify or delete any values.",
+      'Retrieves a caller’s ClinConnect account profile (read-only).',
     parameters: {
-      type: "object",
+      type: 'object',
       properties: {
         phone_number: {
-          type: "string",
+          type: 'string',
           description:
-            "Formatted as '(xxx) xxx-xxxx'. MUST be provided by the user, never a null or empty string.",
+            "Caller’s phone number in the format “(xxx) xxx-xxxx”, supplied by the user.",
         },
       },
-      required: ["phone_number"],
+      required: ['phone_number'],
       additionalProperties: false,
     },
   },
   {
-    type: "function",
-    name: "findNearestStore",
+    type: 'function',
+    name: 'findNearestStore',
     description:
-      "Tool to find the nearest store location to a customer, given their zip code.",
+      'Returns nearest partner clinic or resource center based on ZIP—kept for parity with legacy code.',
     parameters: {
-      type: "object",
+      type: 'object',
       properties: {
         zip_code: {
-          type: "string",
-          description: "The customer's 5-digit zip code.",
+          type: 'string',
+          description: 'Five-digit ZIP code provided by the caller.',
         },
       },
-      required: ["zip_code"],
+      required: ['zip_code'],
       additionalProperties: false,
     },
   },
 ];
 
+// ────────────────────────────────────────────────────────────────────────────────
+// FETCH / TOOL-EXECUTION HELPERS (unchanged except for comment tweaks)
+// ────────────────────────────────────────────────────────────────────────────────
 async function fetchResponsesMessage(body: any) {
   const response = await fetch('/api/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    // Preserve the previous behaviour of forcing sequential tool calls.
     body: JSON.stringify({ ...body, parallel_tool_calls: false }),
   });
 
@@ -168,11 +165,11 @@ async function fetchResponsesMessage(body: any) {
 
 function getToolResponse(fName: string) {
   switch (fName) {
-    case "getUserAccountInfo":
+    case 'getUserAccountInfo':
       return exampleAccountInfo;
-    case "lookupPolicyDocument":
+    case 'lookupPolicyDocument':
       return examplePolicyDocs;
-    case "findNearestStore":
+    case 'findNearestStore':
       return exampleStoreLocations;
     default:
       return { result: true };
@@ -180,8 +177,8 @@ function getToolResponse(fName: string) {
 }
 
 /**
- * Iteratively handles function calls returned by the Responses API until the
- * supervisor produces a final textual answer. Returns that answer as a string.
+ * Iteratively handles function calls until the supervisor produces a final
+ * textual answer. No logic changes needed—only comments updated for clarity.
  */
 async function handleToolCalls(
   body: any,
@@ -196,14 +193,10 @@ async function handleToolCalls(
     }
 
     const outputItems: any[] = currentResponse.output ?? [];
-
-    // Gather all function calls in the output.
     const functionCalls = outputItems.filter((item) => item.type === 'function_call');
 
     if (functionCalls.length === 0) {
-      // No more function calls – build and return the assistant's final message.
       const assistantMessages = outputItems.filter((item) => item.type === 'message');
-
       const finalText = assistantMessages
         .map((msg: any) => {
           const contentArr = msg.content ?? [];
@@ -213,26 +206,19 @@ async function handleToolCalls(
             .join('');
         })
         .join('\n');
-
       return finalText;
     }
 
-    // For each function call returned by the supervisor model, execute it locally and append its
-    // output to the request body as a `function_call_output` item.
     for (const toolCall of functionCalls) {
       const fName = toolCall.name;
       const args = JSON.parse(toolCall.arguments || '{}');
       const toolRes = getToolResponse(fName);
 
-      // Since we're using a local function, we don't need to add our own breadcrumbs
       if (addBreadcrumb) {
         addBreadcrumb(`[supervisorAgent] function call: ${fName}`, args);
-      }
-      if (addBreadcrumb) {
         addBreadcrumb(`[supervisorAgent] function call result: ${fName}`, toolRes);
       }
 
-      // Add function call and result to the request body to send back to realtime
       body.input.push(
         {
           type: 'function_call',
@@ -248,7 +234,6 @@ async function handleToolCalls(
       );
     }
 
-    // Make the follow-up request including the tool outputs.
     currentResponse = await fetchResponsesMessage(body);
   }
 }
@@ -256,14 +241,14 @@ async function handleToolCalls(
 export const getNextResponseFromSupervisor = tool({
   name: 'getNextResponseFromSupervisor',
   description:
-    'Determines the next response whenever the agent faces a non-trivial decision, produced by a highly intelligent supervisor agent. Returns a message describing what to do next.',
+    'Returns the next supervisor message guiding the junior ClinConnect agent.',
   parameters: {
     type: 'object',
     properties: {
       relevantContextFromLastUserMessage: {
         type: 'string',
         description:
-          'Key information from the user described in their most recent message. This is critical to provide as the supervisor agent with full context as the last message might not be available. Okay to omit if the user message didn\'t add any new information.',
+          'Key info from the caller’s most recent message. Omit only if nothing new was said.',
       },
     },
     required: ['relevantContextFromLastUserMessage'],
@@ -293,11 +278,11 @@ export const getNextResponseFromSupervisor = tool({
           type: 'message',
           role: 'user',
           content: `==== Conversation History ====
-          ${JSON.stringify(filteredLogs, null, 2)}
-          
-          ==== Relevant Context From Last User Message ===
-          ${relevantContextFromLastUserMessage}
-          `,
+${JSON.stringify(filteredLogs, null, 2)}
+
+==== Relevant Context From Last User Message ===
+${relevantContextFromLastUserMessage}
+`,
         },
       ],
       tools: supervisorAgentTools,
@@ -316,4 +301,3 @@ export const getNextResponseFromSupervisor = tool({
     return { nextResponse: finalText as string };
   },
 });
-  
