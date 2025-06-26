@@ -146,3 +146,77 @@ export const GuardrailOutputZod = z.object({
 });
 
 export type GuardrailOutput = z.infer<typeof GuardrailOutputZod>;
+
+// Clinical Trial Types
+export interface ClinicalTrial {
+  id: string;
+  nctId: string;
+  title: string;
+  briefSummary: string;
+  detailedDescription?: string;
+  phase: string;
+  status: 'recruiting' | 'active' | 'completed' | 'suspended' | 'terminated';
+  condition: string[];
+  intervention: string[];
+  sponsor: string;
+  location: {
+    facility: string;
+    city: string;
+    state: string;
+    country: string;
+    contactName?: string;
+    contactPhone?: string;
+    contactEmail?: string;
+  }[];
+  eligibilityCriteria: {
+    inclusionCriteria: string[];
+    exclusionCriteria: string[];
+    minAge?: string;
+    maxAge?: string;
+    gender: 'all' | 'male' | 'female';
+  };
+  estimatedEnrollment: number;
+  studyStartDate?: string;
+  primaryCompletionDate?: string;
+  studyCompletionDate?: string;
+  url?: string;
+}
+
+export interface PatientProfile {
+  id: string;
+  age: number;
+  gender: 'male' | 'female' | 'other';
+  conditions: string[];
+  medications: string[];
+  allergies: string[];
+  medicalHistory: string[];
+  location: {
+    city: string;
+    state: string;
+    country: string;
+  };
+  preferences: {
+    maxDistance: number; // in miles
+    travelWillingness: 'local' | 'regional' | 'national' | 'international';
+    phasePreference?: string[];
+  };
+}
+
+export interface TrialMatch {
+  trial: ClinicalTrial;
+  matchScore: number;
+  matchReasons: string[];
+  eligibilityStatus: 'eligible' | 'potentially_eligible' | 'not_eligible';
+  eligibilityNotes: string[];
+}
+
+export interface EnrollmentApplication {
+  id: string;
+  patientId: string;
+  trialId: string;
+  status: 'submitted' | 'under_review' | 'approved' | 'rejected' | 'enrolled';
+  submittedAt: string;
+  reviewedAt?: string;
+  notes?: string;
+  contactPreference: 'phone' | 'email' | 'both';
+}

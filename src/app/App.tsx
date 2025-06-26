@@ -9,6 +9,7 @@ import Image from "next/image";
 import Transcript from "./components/Transcript";
 import Events from "./components/Events";
 import BottomToolbar from "./components/BottomToolbar";
+import ClinicalTrialDashboard from "./components/ClinicalTrialDashboard";
 
 // Types
 import { SessionStatus } from "@/app/types";
@@ -24,6 +25,7 @@ import { createModerationGuardrail } from "@/app/agentConfigs/guardrails";
 import { allAgentSets, defaultAgentSetKey } from "@/app/agentConfigs";
 import { customerServiceRetailScenario } from "@/app/agentConfigs/customerServiceRetail";
 import { chatSupervisorScenario } from "@/app/agentConfigs/chatSupervisor";
+import { clinicalTrialsScenario } from "@/app/agentConfigs/clinicalTrials";
 import { customerServiceRetailCompanyName } from "@/app/agentConfigs/customerServiceRetail";
 import { chatSupervisorCompanyName } from "@/app/agentConfigs/chatSupervisor";
 import { simpleHandoffScenario } from "@/app/agentConfigs/simpleHandoff";
@@ -33,6 +35,7 @@ const sdkScenarioMap: Record<string, RealtimeAgent[]> = {
   simpleHandoff: simpleHandoffScenario,
   customerServiceRetail: customerServiceRetailScenario,
   chatSupervisor: chatSupervisorScenario,
+  clinicalTrials: clinicalTrialsScenario,
 };
 
 import useAudioDownload from "./hooks/useAudioDownload";
@@ -117,6 +120,7 @@ function App() {
       return stored ? stored === 'true' : true;
     },
   );
+  const [showClinicalTrialDashboard, setShowClinicalTrialDashboard] = useState<boolean>(false);
 
   // Initialize the recording hook.
   const { startRecording, stopRecording, downloadRecording } =
@@ -453,6 +457,14 @@ function App() {
           </div>
         </div>
         <div className="flex items-center">
+          {/* Clinical Trial Dashboard Button */}
+          <button
+            onClick={() => setShowClinicalTrialDashboard(true)}
+            className="mr-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            🏥 Clinical Trials
+          </button>
+          
           <label className="flex items-center text-base gap-1 mr-2 font-medium">
             Scenario
           </label>
@@ -543,6 +555,12 @@ function App() {
         setIsAudioPlaybackEnabled={setIsAudioPlaybackEnabled}
         codec={urlCodec}
         onCodecChange={handleCodecChange}
+      />
+
+      {/* Clinical Trial Dashboard */}
+      <ClinicalTrialDashboard
+        isVisible={showClinicalTrialDashboard}
+        onClose={() => setShowClinicalTrialDashboard(false)}
       />
     </div>
   );
