@@ -453,7 +453,7 @@ function App() {
             />
           </div>
           <div>
-            Realtime API <span className="text-gray-500">Agents</span>
+            ClinConnect <span className="text-gray-500">Realtime Voice Agent</span>
           </div>
         </div>
         <div className="flex items-center">

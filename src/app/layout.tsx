@@ -3,8 +3,8 @@ import "./globals.css";
 import "./lib/envSetup";
 
 export const metadata: Metadata = {
-  title: "Realtime API Agents",
-  description: "A demo app from OpenAI.",
+  title: "ClinConnect Real-Time Voice Agent",
+  description: "A PoC app from ClinConnect.",
 };
 
 export default function RootLayout({
