@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ClinicalTrial, PatientProfile, TrialMatch } from '@/app/types';
+import { ClinicalTrialsGovAPI } from '@/app/lib/clinicalTrialsGovApi';
 
 // Mock clinical trials database
 const mockTrials: ClinicalTrial[] = [
@@ -313,71 +314,127 @@ export async function GET(request: NextRequest) {
         const location = searchParams.get('location');
         const phase = searchParams.get('phase');
         const status = searchParams.get('status') || 'recruiting';
+        const pageSize = parseInt(searchParams.get('pageSize') || '20');
+        const pageToken = searchParams.get('pageToken') || undefined;
 
-        let filteredTrials = mockTrials;
+        try {
+          // Use real ClinicalTrials.gov API
+          const result = await ClinicalTrialsGovAPI.searchTrials({
+            condition: condition || undefined,
+            location: location || undefined,
+            phase: phase || undefined,
+            status: status === 'all' ? undefined : status,
+            pageSize,
+            pageToken
+          });
 
-        // Filter by condition
-        if (condition) {
-          filteredTrials = filteredTrials.filter(trial =>
-            trial.condition.some(c => 
-              c.toLowerCase().includes(condition.toLowerCase())
-            )
-          );
+          return NextResponse.json({
+            success: true,
+            trials: result.trials,
+            totalCount: result.totalCount,
+            nextPageToken: result.nextPageToken
+          });
+        } catch (error) {
+          console.error('ClinicalTrials.gov API error:', error);
+          
+          // Fallback to mock data if API fails
+          console.log('Falling back to mock data due to API error');
+          let filteredTrials = mockTrials;
+
+          // Apply basic filtering to mock data
+          if (condition) {
+            filteredTrials = filteredTrials.filter(trial =>
+              trial.condition.some(c => 
+                c.toLowerCase().includes(condition.toLowerCase())
+              )
+            );
+          }
+
+          if (location) {
+            filteredTrials = filteredTrials.filter(trial =>
+              trial.location.some(loc =>
+                loc.city.toLowerCase().includes(location.toLowerCase()) ||
+                loc.state.toLowerCase().includes(location.toLowerCase())
+              )
+            );
+          }
+
+          if (phase) {
+            filteredTrials = filteredTrials.filter(trial =>
+              trial.phase.toLowerCase().includes(phase.toLowerCase())
+            );
+          }
+
+          if (status !== 'all') {
+            filteredTrials = filteredTrials.filter(trial =>
+              trial.status === status
+            );
+          }
+
+          return NextResponse.json({
+            success: true,
+            trials: filteredTrials,
+            totalCount: filteredTrials.length,
+            fallbackMode: true,
+            error: 'Using mock data due to API unavailability'
+          });
         }
-
-        // Filter by location
-        if (location) {
-          filteredTrials = filteredTrials.filter(trial =>
-            trial.location.some(loc =>
-              loc.city.toLowerCase().includes(location.toLowerCase()) ||
-              loc.state.toLowerCase().includes(location.toLowerCase())
-            )
-          );
-        }
-
-        // Filter by phase
-        if (phase) {
-          filteredTrials = filteredTrials.filter(trial =>
-            trial.phase.toLowerCase().includes(phase.toLowerCase())
-          );
-        }
-
-        // Filter by status
-        if (status !== 'all') {
-          filteredTrials = filteredTrials.filter(trial =>
-            trial.status === status
-          );
-        }
-
-        return NextResponse.json({
-          success: true,
-          trials: filteredTrials,
-          totalCount: filteredTrials.length
-        });
 
       case 'detail':
         const trialId = searchParams.get('id');
-        const trial = mockTrials.find(t => t.id === trialId);
         
-        if (!trial) {
+        if (!trialId) {
           return NextResponse.json({
             success: false,
-            error: 'Trial not found'
-          }, { status: 404 });
+            error: 'Trial ID is required'
+          }, { status: 400 });
         }
 
-        return NextResponse.json({
-          success: true,
-          trial
-        });
+        try {
+          // Use real ClinicalTrials.gov API
+          const trial = await ClinicalTrialsGovAPI.getTrialDetail(trialId);
+          
+          if (!trial) {
+            return NextResponse.json({
+              success: false,
+              error: 'Trial not found'
+            }, { status: 404 });
+          }
+
+          return NextResponse.json({
+            success: true,
+            trial
+          });
+        } catch (error) {
+          console.error('ClinicalTrials.gov API error for trial detail:', error);
+          
+          // Fallback to mock data
+          const mockTrial = mockTrials.find(t => t.id === trialId || t.nctId === trialId);
+          
+          if (!mockTrial) {
+            return NextResponse.json({
+              success: false,
+              error: 'Trial not found'
+            }, { status: 404 });
+          }
+
+          return NextResponse.json({
+            success: true,
+            trial: mockTrial,
+            fallbackMode: true
+          });
+        }
 
       case 'match':
-        // This would typically receive a patient profile and return matched trials
+        // Get patient profile from query params or use mock data
+        const patientConditions = searchParams.get('conditions')?.split(',') || ['Type 2 Diabetes'];
+        const patientLocation = searchParams.get('patientLocation') || 'Illinois';
+        
         const mockPatientProfile: PatientProfile = {
           id: 'patient_001',
           age: 65,
           gender: 'male',
-          conditions: ['Type 2 Diabetes'],
+          conditions: patientConditions,
           medications: ['Metformin'],
           allergies: [],
           medicalHistory: ['Hypertension'],
@@ -393,15 +450,38 @@ export async function GET(request: NextRequest) {
           }
         };
 
-        const matches = mockTrials.map(trial => 
-          calculateMatchScore(trial, mockPatientProfile)
-        ).sort((a, b) => b.matchScore - a.matchScore);
+        try {
+          // Use real ClinicalTrials.gov API for personalized matching
+          const trials = await ClinicalTrialsGovAPI.getTrialsByConditions(
+            patientConditions,
+            patientLocation
+          );
 
-        return NextResponse.json({
-          success: true,
-          matches: matches.slice(0, 10), // Return top 10 matches
-          totalMatches: matches.length
-        });
+          const matches = trials.map(trial => 
+            calculateMatchScore(trial, mockPatientProfile)
+          ).sort((a, b) => b.matchScore - a.matchScore);
+
+          return NextResponse.json({
+            success: true,
+            matches: matches.slice(0, 10), // Return top 10 matches
+            totalMatches: matches.length,
+            usingRealData: true
+          });
+        } catch (error) {
+          console.error('ClinicalTrials.gov API error for matching:', error);
+          
+          // Fallback to mock data matching
+          const matches = mockTrials.map(trial => 
+            calculateMatchScore(trial, mockPatientProfile)
+          ).sort((a, b) => b.matchScore - a.matchScore);
+
+          return NextResponse.json({
+            success: true,
+            matches: matches.slice(0, 10),
+            totalMatches: matches.length,
+            fallbackMode: true
+          });
+        }
 
       default:
         return NextResponse.json({
@@ -431,6 +511,9 @@ export async function POST(request: NextRequest) {
         // Mock application submission
         const applicationId = `app_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
+        // TODO: Implement actual application logic with patientId, trialId, contactPreference
+        console.log('Application submitted:', { patientId, trialId, contactPreference });
+        
         return NextResponse.json({
           success: true,
           applicationId,
@@ -440,6 +523,9 @@ export async function POST(request: NextRequest) {
 
       case 'save':
         const { patientId: savePatientId, trialId: saveTrialId, notes } = body;
+        
+        // TODO: Implement actual save logic
+        console.log('Trial saved:', { savePatientId, saveTrialId, notes });
         
         return NextResponse.json({
           success: true,

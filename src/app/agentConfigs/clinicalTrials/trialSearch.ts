@@ -55,117 +55,143 @@ Always present information clearly and help patients understand their options. B
         additionalProperties: false,
       },
       execute: async (input: any) => {
-        // Mock clinical trials data - in production, this would query a real database
-        const mockTrials = [
-          {
-            id: 'trial_001',
-            nctId: 'NCT12345678',
-            title: 'Phase II Study of Novel Cancer Immunotherapy',
-            briefSummary: 'Testing a new immunotherapy treatment for advanced solid tumors.',
-            phase: 'Phase II',
-            status: 'recruiting',
-            condition: ['Cancer', 'Solid Tumor', 'Advanced Cancer'],
-            intervention: ['Immunotherapy', 'CAR-T Cell Therapy'],
-            sponsor: 'University Medical Center',
-            location: [
-              {
-                facility: 'University Medical Center',
-                city: 'Boston',
-                state: 'Massachusetts',
-                country: 'United States',
-                contactName: 'Dr. Sarah Johnson',
-                contactPhone: '(617) 555-0123',
-                contactEmail: 'clinicaltrials@umc.edu'
-              }
-            ],
-            eligibilityCriteria: {
-              inclusionCriteria: [
-                'Age 18 years or older',
-                'Histologically confirmed solid tumor',
-                'Progressive disease after standard therapy',
-                'ECOG performance status 0-2'
-              ],
-              exclusionCriteria: [
-                'Active autoimmune disease',
-                'Concurrent malignancy',
-                'Severe cardiac dysfunction'
-              ],
-              minAge: '18',
-              maxAge: '85',
-              gender: 'all'
-            },
-            estimatedEnrollment: 50,
-            url: 'https://clinicaltrials.gov/ct2/show/NCT12345678'
-          },
-          {
-            id: 'trial_002',
-            nctId: 'NCT87654321',
-            title: 'Phase III Diabetes Management Study',
-            briefSummary: 'Comparing new diabetes medication to standard treatment.',
-            phase: 'Phase III',
-            status: 'recruiting',
-            condition: ['Type 2 Diabetes', 'Diabetes Mellitus'],
-            intervention: ['Investigational Drug', 'Metformin'],
-            sponsor: 'Pharmaceutical Research Institute',
-            location: [
-              {
-                facility: 'Regional Diabetes Center',
-                city: 'Chicago',
-                state: 'Illinois',
-                country: 'United States',
-                contactName: 'Dr. Michael Chen',
-                contactPhone: '(312) 555-0456',
-                contactEmail: 'diabetes.trials@rdc.org'
-              }
-            ],
-            eligibilityCriteria: {
-              inclusionCriteria: [
-                'Type 2 Diabetes diagnosis',
-                'HbA1c between 7-11%',
-                'Age 25-75 years',
-                'BMI 25-40 kg/m²'
-              ],
-              exclusionCriteria: [
-                'Type 1 Diabetes',
-                'Severe kidney disease',
-                'Recent heart attack'
-              ],
-              minAge: '25',
-              maxAge: '75',
-              gender: 'all'
-            },
-            estimatedEnrollment: 200,
-            url: 'https://clinicaltrials.gov/ct2/show/NCT87654321'
+        try {
+          // Use real ClinicalTrials.gov API
+          const response = await fetch(`/api/clinical-trials?action=search&condition=${encodeURIComponent(input.conditions?.join(' ') || '')}&location=${encodeURIComponent(input.location?.state || '')}&phase=${encodeURIComponent(input.phase?.join(' ') || '')}&status=${input.status || 'recruiting'}`);
+          
+          if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
           }
-        ];
+          
+          const apiData = await response.json();
+          
+          if (apiData.success) {
+            return {
+              trials: apiData.trials,
+              totalFound: apiData.totalCount,
+              searchCriteria: input,
+              usingRealData: !apiData.fallbackMode
+            };
+          } else {
+            throw new Error(apiData.error || 'Unknown API error');
+          }
+        } catch (error) {
+          console.error('Error fetching trials from API:', error);
+          
+          // Fallback to mock data for demonstration
+          const mockTrials = [
+            {
+              id: 'trial_001',
+              nctId: 'NCT12345678',
+              title: 'Phase II Study of Novel Cancer Immunotherapy',
+              briefSummary: 'Testing a new immunotherapy treatment for advanced solid tumors.',
+              phase: 'Phase II',
+              status: 'recruiting',
+              condition: ['Cancer', 'Solid Tumor', 'Advanced Cancer'],
+              intervention: ['Immunotherapy', 'CAR-T Cell Therapy'],
+              sponsor: 'University Medical Center',
+              location: [
+                {
+                  facility: 'University Medical Center',
+                  city: 'Boston',
+                  state: 'Massachusetts',
+                  country: 'United States',
+                  contactName: 'Dr. Sarah Johnson',
+                  contactPhone: '(617) 555-0123',
+                  contactEmail: 'clinicaltrials@umc.edu'
+                }
+              ],
+              eligibilityCriteria: {
+                inclusionCriteria: [
+                  'Age 18 years or older',
+                  'Histologically confirmed solid tumor',
+                  'Progressive disease after standard therapy',
+                  'ECOG performance status 0-2'
+                ],
+                exclusionCriteria: [
+                  'Active autoimmune disease',
+                  'Concurrent malignancy',
+                  'Severe cardiac dysfunction'
+                ],
+                minAge: '18',
+                maxAge: '85',
+                gender: 'all'
+              },
+              estimatedEnrollment: 50,
+              url: 'https://clinicaltrials.gov/ct2/show/NCT12345678'
+            },
+            {
+              id: 'trial_002',
+              nctId: 'NCT87654321',
+              title: 'Phase III Diabetes Management Study',
+              briefSummary: 'Comparing new diabetes medication to standard treatment.',
+              phase: 'Phase III',
+              status: 'recruiting',
+              condition: ['Type 2 Diabetes', 'Diabetes Mellitus'],
+              intervention: ['Investigational Drug', 'Metformin'],
+              sponsor: 'Pharmaceutical Research Institute',
+              location: [
+                {
+                  facility: 'Regional Diabetes Center',
+                  city: 'Chicago',
+                  state: 'Illinois',
+                  country: 'United States',
+                  contactName: 'Dr. Michael Chen',
+                  contactPhone: '(312) 555-0456',
+                  contactEmail: 'diabetes.trials@rdc.org'
+                }
+              ],
+              eligibilityCriteria: {
+                inclusionCriteria: [
+                  'Type 2 Diabetes diagnosis',
+                  'HbA1c between 7-11%',
+                  'Age 25-75 years',
+                  'BMI 25-40 kg/m²'
+                ],
+                exclusionCriteria: [
+                  'Type 1 Diabetes',
+                  'Severe kidney disease',
+                  'Recent heart attack'
+                ],
+                minAge: '25',
+                maxAge: '75',
+                gender: 'all'
+              },
+              estimatedEnrollment: 200,
+              url: 'https://clinicaltrials.gov/ct2/show/NCT87654321'
+            }
+          ];
 
-        // Filter trials based on search criteria
-        const filteredTrials = mockTrials.filter(trial => {
-          // Check condition match
-          const conditionMatch = input.conditions.some((condition: string) =>
-            trial.condition.some(trialCondition =>
-              trialCondition.toLowerCase().includes(condition.toLowerCase()) ||
-              condition.toLowerCase().includes(trialCondition.toLowerCase())
-            )
-          );
+          // Filter trials based on search criteria (fallback)
+          const filteredTrials = mockTrials.filter(trial => {
+            // Check condition match
+            const conditionMatch = input.conditions ? input.conditions.some((condition: string) =>
+              trial.condition.some(trialCondition =>
+                trialCondition.toLowerCase().includes(condition.toLowerCase()) ||
+                condition.toLowerCase().includes(trialCondition.toLowerCase())
+              )
+            ) : true;
 
-          // Check phase if specified
-          const phaseMatch = !input.phase || 
-            input.phase.includes(trial.phase);
+            // Check phase if specified
+            const phaseMatch = !input.phase || 
+              input.phase.includes(trial.phase);
 
-          // Check status if specified
-          const statusMatch = !input.status || 
-            input.status === 'all' || 
-            trial.status === input.status;
+            // Check status if specified
+            const statusMatch = !input.status || 
+              input.status === 'all' || 
+              trial.status === input.status;
 
-          return conditionMatch && phaseMatch && statusMatch;
-        });
+            return conditionMatch && phaseMatch && statusMatch;
+          });
 
-        return {
-          trials: filteredTrials,
-          totalFound: filteredTrials.length,
-          searchCriteria: input,
-        };
+          return {
+            trials: filteredTrials,
+            totalFound: filteredTrials.length,
+            searchCriteria: input,
+            usingRealData: false,
+            fallbackMode: true
+          };
+        }
       },
     }),
 
